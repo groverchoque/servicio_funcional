@@ -3,9 +3,9 @@ var multer = require('multer');
 var router = express.Router();
 var fs = require('fs');
 //var _ = require("underscore");
-var Home = require("../../../database/collections/homes");
+var TIENDA = require("../../../database/collections/tienda");
 var Img = require("../../../database/collections/img");
-
+var USUARIOS= require("../../../database/collections/usuarios");
 var jwt = require("jsonwebtoken");
 
 
@@ -294,3 +294,43 @@ router.put(/home\/[a-z0-9]{1,}$/, verifytoken,(req, res) => {
   });
 });
 module.exports = router;
+//PARA TIENDA
+
+//user register
+router.post("/usuarios",(req, res) => {
+  var usuarios = req.body;
+
+//validacion de datos
+  usuarios["registerdate"] = new Date();
+  var user = new USUARIOS(usuarios);
+  user.save().them ((docs)=>{
+    res.status(200).json(docs);
+  });
+});
+
+//
+router.post("/login", (req, res, next) => {
+  var email = req.body.email;
+  var password = req.body.password;
+  var result = USERS.findOne({email: email,password: password}).exec((err, doc) => {
+    if (err) {
+      res.status(200).json({
+        msn : "No se puede concretar con la peticion "
+      });
+      return;
+    }
+    if (doc) {
+      //res.status(200).json(doc);
+      jwt.sign({name: doc.email, password: doc.password}, "secretkey123", (err, token) => {
+          console.log(err);
+          res.status(200).json({
+            token : token
+          });
+      })
+    } else {
+      res.status(200).json({
+        msn : "El usuario no existe ne la base de datos"
+      });
+    }
+  });
+});
